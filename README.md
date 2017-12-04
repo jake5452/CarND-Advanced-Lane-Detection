@@ -90,9 +90,9 @@ Here is the link to my output video:
 ## Discussion
 The pipeline was able to detect the lanes in the given project video very well. It did not perfowm as well with the challenge videos. Following is the summary of what I think would improve the algorithm to perform well on the challange videos.
 
-* False Positives Rejection Based on Physical Behaviour of the Lanes
+* False Positives Rejection Based on Physical Behaviour of the Lanes: 
 It is not possible for the lane lines to suddenly change direction or its location. The pipeline tended to produce a lot of false positives when the pavement on the road looked irregular or the lanes get hard to see because of a large shadow. These false postive models can be rejected based on a model of how a lane physically behaves. In these cases, we can make reasonable prediction of where the lanes should based on our model of the lanes.
 
-* False Positives Rejection Based on Overal Brightness In the Image
+* False Positives Rejection Based on Overal Brightness In the Image: 
 Sometimes the camera gets interference from direct sunlight making it hard to detect lanes. These kind of interference can be detected by looking at the overall brightness of the image and see if reliable detection is possible. If not, we can predict where the lanes should be based on historical data about the lanes and use them instead.
 
