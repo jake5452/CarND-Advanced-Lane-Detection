@@ -1,39 +1,101 @@
 ## Advanced Lane Finding
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
+This project is about building a lane detector using more advanced computer vision algorithms.
 
-In this project, your goal is to write a software pipeline to identify the lane boundaries in a video, but the main output or product we want you to create is a detailed writeup of the project.  Check out the [writeup template](https://github.com/udacity/CarND-Advanced-Lane-Lines/blob/master/writeup_template.md) for this project and use it as a starting point for creating your own writeup.  
-
-Creating a great writeup:
----
-A great writeup should include the rubric points as well as your description of how you addressed each point.  You should include a detailed description of the code used in each step (with line-number references and code snippets where necessary), and links to other supporting documents or external references.  You should include images in your writeup to demonstrate how your code works with examples.  
-
-All that said, please be concise!  We're not looking for you to write a book here, just a brief description of how you passed each rubric point, and references to the relevant code :). 
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup.
-
-The Project
+Overview
 ---
 
-The goals / steps of this project are the following:
-
+The goals of the project are the following:
 * Compute the camera calibration matrix and distortion coefficients given a set of chessboard images.
-* Apply a distortion correction to raw images.
+* Apply the distortion correction to the raw image.  
 * Use color transforms, gradients, etc., to create a thresholded binary image.
-* Apply a perspective transform to rectify binary image ("birds-eye view").
-* Detect lane pixels and fit to find the lane boundary.
-* Determine the curvature of the lane and vehicle position with respect to center.
-* Warp the detected lane boundaries back onto the original image.
+* Apply a perspective transform to rectify binary image ("birds-eye view"). 
+* Detect lane pixels and fit to find lane boundary.
+* Determine curvature of the lane and vehicle position with respect to center.
+* Warping the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
+* Run the entire pipeline on a sample video recorded on a sunny day on the I-280. 
 
-The images for camera calibration are stored in the folder called `camera_cal`.  The images in `test_images` are for testing your pipeline on single frames.  If you want to extract more test images from the videos, you can simply use an image writing method like `cv2.imwrite()`, i.e., you can read the video in frame by frame as usual, and for frames you want to save for later you can write to an image file.  
+Most of the algorithm architecture is provided by the udacity course. The key for the succesful implementation depended a lot on parameter tuning.
 
-To help the reviewer examine your work, please save examples of the output from each stage of your pipeline in the folder called `ouput_images`, and include a description in your writeup for the project of what each image shows.    The video called `project_video.mp4` is the video your pipeline should work well on.  
+## Pipeline
 
-The `challenge_video.mp4` video is an extra (and optional) challenge for you if you want to test your pipeline under somewhat trickier conditions.  The `harder_challenge.mp4` video is another optional challenge and is brutal!
+Camera Calibration
+---
 
-If you're feeling ambitious (again, totally optional though), don't stop there!  We encourage you to go out and take video of your own, calibrate your camera and show us how you would implement this project from scratch!
+Camera calibration step involves calibrating out the distortion caused by the camera lens using a set of chessboard images. Calibration iamges are provided under camera_cal directory. 
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+I started by preparing a list of "object points" that represent expected coordiantes (x, y, z) of corners in the chessboard patterns in the world coordinate sapce, with z assumed to be 0 for all the points. The goal here is to provide the calibration algorithm what the chessboard corners should look like in a 2d plane in reality. 
+
+Next, I used OpennCV's `findChessboardCorners()` function which can detect a chessboard pattern given an image and number of corners in horizontal and vertical directions. The chessboard patterns contain 9 and 6 corners in the horizontal and vertical directions. `findChessboardCorners()` function outputs "image points" coordinates of the corners in the camera's view.
+
+The object points and image points then can be fed into the `calibrateCamera()` function which computes the calibration paramters for correcting the camera lens distortion.
+
+Here is an example that demnostrates the camera calibration procedure using a chessboard pattern image:
+[image1]: ./output_images/camera_calibration.png "Undistorted"
+
+Perspective Transform
+---
+
+Because cameras project 3d objects into 2d image plane as it captures images, it becomes hard to uncover the actual shape of the lanes in 3d space. To solve this problem, perspective transform can be used to transform the original incoming image so that it looks like the image was taken from the top view.
+
+In order to do the transform, we need to specify source points in the origianl image coordinate and corresponding destination points in the transformed coordinate. I had to perform a series of trial and error to find out points for the bounding box that would be used for the perspective transform. Figuring out the coordinates of the bouding box in the transformed perspective also took trial and error. To make the searching process easier, I used a test image that contains lanes that are known to be a straight line and tried different combination of coordinates to get straight lanes in the transformed perspective.
+
+ Here is an example of perspective transform:
+ 
+ [image2]: ./output_images/perspective_transform.png "Perspective Transform"
+ 
+Sobel Edge Detector
+---
+
+The Sobel Edge detector detects edges in images, which is useful for detecting the lanes. I used sobel edge dector to find any sharp edges within specified range of orientations. I had to experiment a lot with the parameters to detect edges with desirable magnitude and orientation:
+
+[image3]: ./output_images/sobel.png "Sobel"
+
+Color Transform
+---
+
+Another feature we can make use of for detecting the lanes is their color. Transforming the input image into different colour space allows us to select specific type of colour in more sophisticated manner. I used the following colour filtering pipeline to detect the lanes:
+
+* transforming the input image into Hue Saturation Value (HSV) space and then thresholding in the H and S channels to detect the lanes
+* transforming the input image into LUV space and thresholding in the L channel for better detection of white lanes
+* transforming the input image into Lab space and thresholding in b space for better detection of yellow lanes
+
+Combined filtering gave the following result:
+[image4]: ./output_images/color.png "Color"
+
+Polynomial Line Fitting
+---
+
+To uncover the shape of the lanes, we first need the starting point of the lanes. This is done by applying histogram method. The histogram method allows us to discover the point in the along width of the images is most likely to be the base of a lane. Once the base of a lane is discovered, sliding windows search method is used to discover rest of the pixels that belong to the lane. The coordinates of those pixels are then used to perform 2nd order polynomial line fitting to model the shape of the line.
+
+Here is the result of polynomial line fitting:
+[image5]: ./output_images/polynomial_fitting.jpg "Example1"
+
+Entire Pipeline
+---
+Here are some examples of results for the entire pipeline:
+[image6]: ./output_images/processed_straight_lines1.jpg "Example1"
+[image7]: ./output_images/processed_test3.jpg "Example2"
+[image8]: ./output_images/processed_test5.jpg "Example3"
+
+Smoothing the Line Model Over Time
+---
+I averaged out model for 10 consecutive frames so that the algorithm is robust against sudden failures to detect lanes or misclassifications of lanes.
+
+## Result
+
+Here is the link to my output video:
+[link to my video result](./project_video_output.mp4)
+
+## Discussion
+The pipeline was able to detect the lanes in the given project video very well. It did not perfowm as well with the challenge videos. Following is the summary of what I think would improve the algorithm to perform well on the challange videos.
+
+False Positives Rejection Based on Physical Behaviour of the Lanes
+---
+It is not possible for the lane lines to suddenly change direction or its location. The pipeline tended to produce a lot of false positives when the pavement on the road looked irregular or the lanes get hard to see because of a large shadow. These false postive models can be rejected based on a model of how a lane physically behaves. In these cases, we can make reasonable prediction of where the lanes should based on our model of the lanes.
+
+False Positives Rejection Based on Overal Brightness In the Image
+---
+Sometimes the camera gets interference from direct sunlight making it hard to detect lanes. These kind of interference can be detected by looking at the overall brightness of the image and see if reliable detection is possible. If not, we can predict where the lanes should be based on historical data about the lanes and use them instead.
 
