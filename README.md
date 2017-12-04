@@ -32,7 +32,7 @@ Next, I used OpennCV's `findChessboardCorners()` function which can detect a che
 The object points and image points then can be fed into the `calibrateCamera()` function which computes the calibration paramters for correcting the camera lens distortion.
 
 Here is an example that demnostrates the camera calibration procedure using a chessboard pattern image:
-[image1]: ./output_images/camera_calibration.png "Undistorted"
+<img src="./output_images/camera_calibration.png" />
 
 Perspective Transform
 ---
@@ -42,15 +42,14 @@ Because cameras project 3d objects into 2d image plane as it captures images, it
 In order to do the transform, we need to specify source points in the origianl image coordinate and corresponding destination points in the transformed coordinate. I had to perform a series of trial and error to find out points for the bounding box that would be used for the perspective transform. Figuring out the coordinates of the bouding box in the transformed perspective also took trial and error. To make the searching process easier, I used a test image that contains lanes that are known to be a straight line and tried different combination of coordinates to get straight lanes in the transformed perspective.
 
  Here is an example of perspective transform:
- 
- [image2]: ./output_images/perspective_transform.png "Perspective Transform"
- 
+<img src="./output_images/perspective_transform.png" />
+
 Sobel Edge Detector
 ---
 
 The Sobel Edge detector detects edges in images, which is useful for detecting the lanes. I used sobel edge dector to find any sharp edges within specified range of orientations. I had to experiment a lot with the parameters to detect edges with desirable magnitude and orientation:
 
-[image3]: ./output_images/sobel.png "Sobel"
+<img src="./output_images/sobel.png" />
 
 Color Transform
 ---
@@ -62,7 +61,7 @@ Another feature we can make use of for detecting the lanes is their color. Trans
 * transforming the input image into Lab space and thresholding in b space for better detection of yellow lanes
 
 Combined filtering gave the following result:
-[image4]: ./output_images/color.png "Color"
+<img src="./output_images/color.png" />
 
 Polynomial Line Fitting
 ---
@@ -70,14 +69,14 @@ Polynomial Line Fitting
 To uncover the shape of the lanes, we first need the starting point of the lanes. This is done by applying histogram method. The histogram method allows us to discover the point in the along width of the images is most likely to be the base of a lane. Once the base of a lane is discovered, sliding windows search method is used to discover rest of the pixels that belong to the lane. The coordinates of those pixels are then used to perform 2nd order polynomial line fitting to model the shape of the line.
 
 Here is the result of polynomial line fitting:
-[image5]: ./output_images/polynomial_fitting.jpg "Example1"
+<img src="./output_images/polynomial_fitting.png" />
 
 Entire Pipeline
 ---
 Here are some examples of results for the entire pipeline:
-[image6]: ./output_images/processed_straight_lines1.jpg "Example1"
-[image7]: ./output_images/processed_test3.jpg "Example2"
-[image8]: ./output_images/processed_test5.jpg "Example3"
+<img src="./output_images/processed_straight_lines1.jpg" />
+<img src="./output_images/processed_test3.jpg" />
+<img src="./output_images/processed_test5.jpg" />
 
 Smoothing the Line Model Over Time
 ---
